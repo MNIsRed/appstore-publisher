@@ -1,0 +1,47 @@
+# App Store Publisher Configuration
+# Copy this file to config.toml and fill in your credentials.
+
+[app]
+package_name = "com.example.myapp"
+app_name = "My App"
+
+[changelog]
+default = "Bug fixes and performance improvements"
+
+# === Tencent Yingyongbao (应用宝) ===
+[stores.yingyongbao]
+enabled = true
+user_id = "your_user_id"
+private_key_path = "./keys/yingyongbao_private.pem"
+
+# === Huawei AppGallery (华为应用市场) ===
+[stores.huawei]
+enabled = true
+client_id = "your_client_id"
+client_secret = "your_client_secret"
+app_id = "your_app_id"
+
+# === Honor App Market (荣耀应用市场) ===
+[stores.honor]
+enabled = true
+client_id = "your_client_id"
+client_secret = "your_client_secret"
+app_id = "your_app_id"
+
+# === vivo App Store (vivo应用商店) ===
+[stores.vivo]
+enabled = true
+access_key = "your_access_key"
+access_secret = "your_access_secret"
+
+# === OPPO App Store (OPPO应用商店) ===
+[stores.oppo]
+enabled = true
+client_id = "your_client_id"
+client_secret = "your_client_secret"
+
+# === Xiaomi App Store (小米应用商店) ===
+[stores.xiaomi]
+enabled = true
+username = "dev@example.com"
+access_password = "your_access_password"
