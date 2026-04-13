@@ -21,6 +21,7 @@ env/
 # Config with secrets
 config.toml
 config.local.toml
+config.json
 *.pem
 *.key
 
