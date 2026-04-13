@@ -1,6 +1,6 @@
 # App Store Publisher 🚀
 
-自动将 APK 发布到中国主流安卓应用商店的 CLI 工具。
+自动将 APK 发布到中国主流安卓应用商店的工具，支持 CLI 和 Web GUI。
 
 ## 支持的应用商店
 
@@ -19,14 +19,24 @@
 pip install -e .
 ```
 
-## 配置
+## Web GUI（推荐）
+
+提供可视化界面，支持配置管理与上传操作。
 
 ```bash
-cp config.example.toml config.toml
-# 编辑 config.toml 填入各商店的凭据
+# 启动（默认 http://127.0.0.1:8580）
+python -m appstore_publisher.web_main
+
+# 自定义端口
+python -m appstore_publisher.web_main -p 8080
 ```
 
-## 使用
+### 功能
+
+- **配置页**：顶部 Tab 切换不同应用市场，配置 API 凭据与签名密钥
+- **上传页**：选择 APK 目录，自动识别渠道包，填写更新日志，一键上传
+
+## CLI 使用
 
 ```bash
 # 发布当前目录下所有渠道 APK
@@ -48,6 +58,18 @@ appstore-publisher -v publish ./release-*.apk
 appstore-publisher channels
 ```
 
+## 配置
+
+复制示例配置文件并填入各商店凭据：
+
+```bash
+cp config.example.toml config.toml
+```
+
+配置文件字段说明见 `config.example.toml`。
+
+Web GUI 的配置保存在 `~/.config/appstore-publisher/config.json`。
+
 ## 项目结构
 
 ```
@@ -58,6 +80,11 @@ src/appstore_publisher/
 ├── publisher.py        # 发布流程编排
 ├── channel_detector.py # 文件名渠道检测
 ├── utils.py            # 签名/哈希工具
+├── web_main.py         # Web GUI 入口
+├── web/
+│   ├── server.py       # HTTP 后端
+│   └── static/
+│       └── index.html  # 前端单页应用
 └── stores/
     ├── base.py         # 抽象基类
     ├── yingyongbao.py  # 腾讯应用宝

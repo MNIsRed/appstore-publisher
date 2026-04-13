@@ -27,3 +27,6 @@ config.local.toml
 # OS
 .DS_Store
 Thumbs.db
+
+# Dev
+TASK.md
