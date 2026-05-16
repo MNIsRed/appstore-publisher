@@ -29,11 +29,14 @@ python -m appstore_publisher.web_main
 
 # 自定义端口
 python -m appstore_publisher.web_main -p 8080
+
+# 设置环境变量 & 默认 python3
+PYTHONPATH=src python3 -m appstore_publisher.web_main --port 8080
 ```
 
 ### 功能
 
-- **配置页**：顶部 Tab 切换不同应用市场，配置 API 凭据与签名密钥
+- **配置页**：顶部 Tab 切换不同应用市场，配置 API 凭据与少量发布选项
 - **上传页**：选择 APK 目录，自动识别渠道包，填写更新日志，一键上传
 
 ## CLI 使用
@@ -69,6 +72,9 @@ cp config.example.toml config.toml
 配置文件字段说明见 `config.example.toml`。
 
 Web GUI 的配置保存在 `~/.config/appstore-publisher/config.json`。
+
+应用宝当前按腾讯文档使用 `user_id`、`app_id`、`access_secret` 做
+HMAC-SHA256 签名，不再使用 RSA Private Key / PEM 私钥。
 
 ## 项目结构
 

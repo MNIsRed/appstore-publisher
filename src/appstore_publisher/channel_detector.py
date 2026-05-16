@@ -16,15 +16,13 @@ CHANNEL_MAP: dict[str, StoreName] = {
     "huawei": StoreName.HUAWEI,
     "honor": StoreName.HONOR,
     "xiaomi": StoreName.XIAOMI,
+    "mi": StoreName.XIAOMI,
     "yingyongbao": StoreName.YINGYONGBAO,
     "tencent": StoreName.YINGYONGBAO,
     "qq": StoreName.YINGYONGBAO,
 }
 
-# Pattern: something-channel.apk or something-channel-signed.apk
-_CHANNEL_PATTERN = re.compile(
-    r".*[-_](?P<channel>[a-z]+)(?:[-_]signed)?\.apk$", re.IGNORECASE
-)
+_CHANNEL_TOKEN_PATTERN = re.compile(r"[-_]+")
 
 
 def detect_channel(filename: str) -> Optional[StoreName]:
@@ -33,13 +31,15 @@ def detect_channel(filename: str) -> Optional[StoreName]:
     Examples:
         release-vivo.apk       → StoreName.VIVO
         app-oppo-signed.apk    → StoreName.OPPO
+        app-honor-release.apk  → StoreName.HONOR
         com.example.app.apk    → None (no channel)
     """
-    match = _CHANNEL_PATTERN.match(filename)
-    if not match:
-        return None
-    channel = match.group("channel").lower()
-    return CHANNEL_MAP.get(channel)
+    stem = filename.removesuffix(".apk").removesuffix(".APK")
+    for token in _CHANNEL_TOKEN_PATTERN.split(stem.lower()):
+        store = CHANNEL_MAP.get(token)
+        if store:
+            return store
+    return None
 
 
 def extract_apk_info(apk_path: Path) -> ApkInfo:

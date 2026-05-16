@@ -413,6 +413,111 @@ body {
   color: var(--gray-500);
   margin-top: 2px;
 }
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.status-cell {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+.status-label {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-bottom: 4px;
+}
+.status-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-800);
+  word-break: break-all;
+}
+.poll-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+.poll-toolbar .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+.poll-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.poll-badge.idle { background: var(--gray-100); color: var(--gray-600); }
+.poll-badge.running { background: var(--primary-light); color: var(--primary); }
+.poll-badge.done { background: var(--success-light); color: var(--success); }
+.poll-badge.failed { background: var(--danger-light); color: var(--danger); }
+.poll-badge.unsupported,
+.poll-badge.skipped,
+.poll-badge.stopped { background: var(--warning-light); color: var(--warning); }
+.poll-store-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.poll-store-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  background: var(--gray-50);
+  color: var(--gray-700);
+  font-size: 13px;
+  cursor: pointer;
+}
+.poll-store-option.disabled {
+  color: var(--gray-400);
+  cursor: not-allowed;
+}
+.poll-store-option input { margin: 0; }
+.poll-store-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.poll-store-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
+.poll-store-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.poll-store-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+.poll-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin: 16px 0 8px;
+}
+.empty-state {
+  color: var(--gray-500);
+  font-size: 13px;
+  padding: 12px 0;
+}
 
 /* spinner */
 @keyframes spin {
@@ -463,6 +568,9 @@ body {
   .container { padding: 0 12px; }
   .store-checkboxes { grid-template-columns: repeat(2, 1fr); }
   .store-tabs { flex-wrap: wrap; }
+  .status-grid { grid-template-columns: 1fr; }
+  .poll-toolbar { flex-direction: column; align-items: stretch; }
+  .poll-store-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -476,6 +584,7 @@ body {
   <nav class="nav-tabs">
     <div class="nav-tab active" data-page="settings" onclick="switchPage('settings')">⚙️ 配置</div>
     <div class="nav-tab" data-page="upload" onclick="switchPage('upload')">📤 上传</div>
+    <div class="nav-tab" data-page="polling" onclick="switchPage('polling')">🔁 轮询</div>
   </nav>
 </header>
 
@@ -486,6 +595,18 @@ body {
 
 <!-- ═══════════════════ Settings Page ═══════════════════ -->
 <div class="page active" id="page-settings">
+  <div class="card">
+    <div class="card-title">📱 应用配置</div>
+    <div class="form-group">
+      <label class="form-label">应用包名 (Package Name)</label>
+      <input class="form-input" data-field="app.package_name" placeholder="例如: com.example.app">
+    </div>
+    <div class="form-group">
+      <label class="form-label">应用名称 (App Name)</label>
+      <input class="form-input" data-field="app.app_name" placeholder="请输入应用名称">
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-title">🏪 商店配置</div>
 
@@ -528,8 +649,16 @@ body {
         <input class="form-input" data-field="yingyongbao.user_id" placeholder="请输入应用宝 User ID">
       </div>
       <div class="form-group">
-        <label class="form-label">RSA Private Key</label>
-        <textarea class="form-textarea" data-field="yingyongbao.private_key_pem" placeholder="粘贴 PEM 格式私钥&#10;-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----" rows="6"></textarea>
+        <label class="form-label">Access Secret</label>
+        <input class="form-input" type="password" data-field="yingyongbao.access_secret" placeholder="请输入 API 发布接口 Access Secret">
+      </div>
+      <div class="form-group">
+        <label class="form-label">App ID</label>
+        <input class="form-input" data-field="yingyongbao.app_id" placeholder="请输入应用宝 App ID">
+      </div>
+      <div class="form-group">
+        <label class="form-label">APK 包类型</label>
+        <input class="form-input" data-field="yingyongbao.release.apk_bit_type" placeholder="32_64 或 64，默认 32_64">
       </div>
     </div>
 
@@ -557,6 +686,26 @@ body {
         <label class="form-label">App ID</label>
         <input class="form-input" data-field="huawei.app_id" placeholder="请输入 App ID">
       </div>
+      <div class="form-group">
+        <label class="form-label">发布类型</label>
+        <input class="form-input" data-field="huawei.release.release_type" placeholder="默认 1：全网发布">
+      </div>
+      <div class="form-group">
+        <label class="form-label">发布阶段</label>
+        <input class="form-input" data-field="huawei.release.release_phase" placeholder="默认 0：不分阶段，直接全网">
+      </div>
+      <div class="form-group">
+        <label class="form-label">软件包类型</label>
+        <input class="form-input" data-field="huawei.release.package_type" placeholder="默认 apk；HarmonyOS 填 app">
+      </div>
+      <div class="form-group">
+        <label class="form-label">语言</label>
+        <input class="form-input" data-field="huawei.release.language" placeholder="默认 zh-CN，用于写入 newFeatures">
+      </div>
+      <div class="form-group">
+        <label class="form-label">定时发布时间</label>
+        <input class="form-input" data-field="huawei.release.release_time" placeholder="可选，例如 2026-05-06T10:00:00+0800">
+      </div>
     </div>
 
     <!-- 荣耀 -->
@@ -581,7 +730,19 @@ body {
       </div>
       <div class="form-group">
         <label class="form-label">App ID</label>
-        <input class="form-input" data-field="honor.app_id" placeholder="请输入 App ID">
+        <input class="form-input" data-field="honor.app_id" placeholder="可选，留空则按包名自动查询">
+      </div>
+      <div class="form-group">
+        <label class="form-label">发布类型</label>
+        <input class="form-input" data-field="honor.release.release_type" placeholder="默认 1：全网发布">
+      </div>
+      <div class="form-group">
+        <label class="form-label">测试账号</label>
+        <input class="form-input" data-field="honor.release.test_account" placeholder="可选">
+      </div>
+      <div class="form-group">
+        <label class="form-label">测试密码</label>
+        <input class="form-input" type="password" data-field="honor.release.test_password" placeholder="可选">
       </div>
     </div>
 
@@ -605,6 +766,14 @@ body {
         <label class="form-label">Access Secret</label>
         <input class="form-input" type="password" data-field="vivo.access_secret" placeholder="请输入 Access Secret">
       </div>
+      <div class="form-group">
+        <label class="form-label">上架类型</label>
+        <input class="form-input" data-field="vivo.release.online_type" placeholder="默认 1：立即上架，2：定时上架">
+      </div>
+      <div class="form-group">
+        <label class="form-label">定时上架时间</label>
+        <input class="form-input" data-field="vivo.release.sche_online_time" placeholder="可选，例如 2026-05-06 10:00:00">
+      </div>
     </div>
 
     <!-- OPPO -->
@@ -627,6 +796,10 @@ body {
         <label class="form-label">Client Secret</label>
         <input class="form-input" type="password" data-field="oppo.client_secret" placeholder="请输入 Client Secret">
       </div>
+      <div class="form-group">
+        <label class="form-label">适配设备</label>
+        <input class="form-input" data-field="oppo.release.adaptive_equipment" placeholder="4=手机，5=手机+平板，6=平板；默认 4">
+      </div>
     </div>
 
     <!-- 小米 -->
@@ -646,8 +819,12 @@ body {
         <input class="form-input" data-field="xiaomi.username" placeholder="请输入小米开发者用户名">
       </div>
       <div class="form-group">
-        <label class="form-label">Access Password</label>
-        <input class="form-input" type="password" data-field="xiaomi.access_password" placeholder="请输入 Access Password">
+        <label class="form-label">API 私钥</label>
+        <input class="form-input" type="password" data-field="xiaomi.private_key" placeholder="请输入小米自动发布 API 私钥">
+      </div>
+      <div class="form-group">
+        <label class="form-label">公钥证书路径</label>
+        <input class="form-input" data-field="xiaomi.public_key_path" placeholder="keys/dev.api.public.cer">
       </div>
     </div>
 
@@ -675,8 +852,12 @@ body {
       <textarea class="form-textarea" id="changelog" placeholder="请输入本次更新内容描述..." rows="4"></textarea>
     </div>
     <div class="form-group">
-      <label class="form-label">版本号 (Version)</label>
+      <label class="form-label">版本名称 (Version Name)</label>
       <input class="form-input" id="versionName" placeholder="例如: 1.2.0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">版本号 (Version Code)</label>
+      <input class="form-input" id="versionCode" placeholder="例如: 120">
     </div>
   </div>
 
@@ -700,6 +881,24 @@ body {
   </div>
 </div>
 
+<!-- ═══════════════════ Polling Page ═══════════════════ -->
+<div class="page" id="page-polling">
+  <div class="card">
+    <div class="card-title">🔁 审核状态轮询 <span class="poll-badge idle" id="pollBadge">未开始</span></div>
+    <div class="poll-toolbar">
+      <div class="form-group">
+        <label class="form-label">轮询间隔（秒）</label>
+        <input class="form-input" id="pollInterval" type="number" min="60" value="10800">
+      </div>
+      <button type="button" class="btn btn-primary" id="startPollBtn" onclick="startAllPolling()">开始全部轮询</button>
+      <button type="button" class="btn btn-outline" id="stopPollBtn" onclick="stopAllPolling()">停止全部轮询任务</button>
+    </div>
+    <div class="poll-store-select" id="pollStoreSelect"></div>
+  </div>
+
+  <div class="poll-store-grid" id="pollStores"></div>
+</div>
+
 </div><!-- /container -->
 
 <script>
@@ -707,11 +906,13 @@ body {
 let config = {};
 let currentStore = 'yingyongbao';
 let statusTimer = null;
+let pollStatusTimer = null;
 
 const STORE_DISPLAY = {
   yingyongbao: '应用宝', huawei: '华为', honor: '荣耀',
   vivo: 'vivo', oppo: 'OPPO', xiaomi: '小米'
 };
+const POLLABLE_STORES = ['yingyongbao', 'huawei', 'honor', 'vivo', 'oppo'];
 
 // ═══════════════════ Init ═══════════════════
 document.addEventListener('DOMContentLoaded', async () => {
@@ -728,6 +929,9 @@ function switchPage(page) {
 
   if (page === 'upload') {
     renderCheckboxes();
+  }
+  if (page === 'polling') {
+    pollStatusOnce();
   }
 }
 
@@ -885,6 +1089,7 @@ async function startUpload() {
   const apkDir = document.getElementById('apkDir').value.trim();
   const changelog = document.getElementById('changelog').value.trim();
   const version = document.getElementById('versionName').value.trim();
+  const versionCode = document.getElementById('versionCode').value.trim();
 
   const targetStores = [];
   document.querySelectorAll('#storeCheckboxes input[type="checkbox"]:checked').forEach(cb => {
@@ -912,6 +1117,7 @@ async function startUpload() {
         apk_dir: apkDir,
         changelog,
         version,
+        version_code: versionCode,
         target_stores: targetStores,
       }),
     });
@@ -981,6 +1187,246 @@ function resetUploadBtn() {
   btn.innerHTML = '🚀 开始上传';
 }
 
+// ═══════════════════ Review Polling ═══════════════════
+async function startAllPolling() {
+  const interval = Number(document.getElementById('pollInterval').value || 10800);
+  const stores = getSelectedPollStores();
+  if (!stores.length) {
+    toast('请选择至少一个已接入的轮询市场', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('startPollBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> 轮询中';
+
+  try {
+    const resp = await fetch('/api/poll/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ interval_seconds: interval, stores }),
+    });
+    const result = await resp.json();
+    if (!result.ok) {
+      toast('启动轮询失败: ' + (result.error || '未知错误'), 'error');
+      await pollStatusOnce();
+      return;
+    }
+    toast(result.message || '审核状态轮询已启动', 'info');
+    startPollStatusTimer();
+    await pollStatusOnce();
+  } catch (e) {
+    toast('启动轮询失败: ' + e.message, 'error');
+    await pollStatusOnce();
+  }
+}
+
+function startHonorPolling() {
+  return startAllPolling();
+}
+
+async function stopAllPolling() {
+  try {
+    const resp = await fetch('/api/poll/stop', { method: 'POST' });
+    const result = await resp.json();
+    if (result.ok) {
+      toast('停止指令已发送', 'info');
+      await pollStatusOnce();
+    } else {
+      toast('停止失败: ' + (result.error || '未知错误'), 'error');
+    }
+  } catch (e) {
+    toast('停止失败: ' + e.message, 'error');
+  }
+}
+
+function startPollStatusTimer() {
+  if (pollStatusTimer) clearInterval(pollStatusTimer);
+  pollStatusTimer = setInterval(pollStatusOnce, 2000);
+}
+
+async function pollStatusOnce() {
+  try {
+    const resp = await fetch('/api/poll/status');
+    const data = await resp.json();
+    renderPollStatus(data);
+    if (data.running) {
+      startPollStatusTimer();
+    } else if (pollStatusTimer) {
+      clearInterval(pollStatusTimer);
+      pollStatusTimer = null;
+    }
+  } catch (e) {
+    // ignore status refresh errors
+  }
+}
+
+function renderPollStatus(data) {
+  const badge = document.getElementById('pollBadge');
+  const startBtn = document.getElementById('startPollBtn');
+  const stopBtn = document.getElementById('stopPollBtn');
+
+  startBtn.disabled = !!data.running;
+  startBtn.innerHTML = data.running ? '<div class="spinner"></div> 轮询中' : '开始全部轮询';
+  stopBtn.disabled = !data.running;
+
+  badge.className = 'poll-badge ' + (data.running ? 'running' : (data.done ? 'done' : 'idle'));
+  badge.textContent = data.running ? '轮询中' : (data.done ? '已结束' : '未开始');
+
+  renderPollStoreOptions(data.stores || {}, !!data.running);
+  renderPollStores(data.stores || {});
+}
+
+function getSelectedPollStores() {
+  return Array.from(document.querySelectorAll('#pollStoreSelect input[type="checkbox"]:checked'))
+    .map(input => input.value);
+}
+
+function renderPollStoreOptions(stores, isRunning) {
+  const container = document.getElementById('pollStoreSelect');
+  const previous = new Map(
+    Array.from(container.querySelectorAll('input[type="checkbox"]'))
+      .map(input => [input.value, input.checked])
+  );
+
+  container.innerHTML = POLLABLE_STORES.map(storeName => {
+    const status = stores[storeName] || {};
+    const supported = status.supported !== false;
+    const enabled = status.enabled !== false && config[storeName]?.enabled !== false;
+    const disabled = isRunning || !supported || !enabled;
+    const checked = previous.has(storeName)
+      ? previous.get(storeName)
+      : (supported && enabled);
+    const suffix = !supported ? '待接入' : (!enabled ? '未启用' : '已接入');
+    return `
+      <label class="poll-store-option ${disabled ? 'disabled' : ''}">
+        <input type="checkbox" value="${esc(storeName)}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
+        <span>${esc(STORE_DISPLAY[storeName] || status.store_display || storeName)}</span>
+        <span style="color:var(--gray-500);font-size:12px;">${suffix}</span>
+      </label>
+    `;
+  }).join('');
+}
+
+function renderPollStores(stores) {
+  const container = document.getElementById('pollStores');
+  container.innerHTML = POLLABLE_STORES.map(storeName => {
+    const status = stores[storeName] || {
+      store: storeName,
+      store_display: STORE_DISPLAY[storeName] || storeName,
+      supported: storeName === 'honor',
+      state: storeName === 'honor' ? 'idle' : 'unsupported',
+      message: '未开始轮询',
+      history: [],
+    };
+    return renderPollStoreCard(status);
+  }).join('');
+}
+
+function renderPollStoreCard(storeStatus) {
+  const state = pollState(storeStatus);
+  const stateText = pollStateText(storeStatus, state);
+  const last = storeStatus.last_result || {};
+  const history = storeStatus.history || [];
+  const latest = history[0] || {};
+  const auditResult = last.audit_result;
+  const inReview = auditResult === 0 ? '是' : (auditResult === undefined || auditResult === null ? '-' : '否');
+
+  return `
+    <section class="poll-store-card">
+      <div class="poll-store-card-header">
+        <div class="poll-store-title">${esc(storeStatus.store_display || storeStatus.store || '-')}</div>
+        <span class="poll-badge ${state}">${stateText}</span>
+      </div>
+      <div class="status-grid">
+        <div class="status-cell">
+          <div class="status-label">审核状态</div>
+          <div class="status-value">${esc(last.audit_status || storeStatus.message || '-')}</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-label">是否审核中</div>
+          <div class="status-value">${esc(inReview)}</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-label">最新版本</div>
+          <div class="status-value">${esc(formatVersion(last))}</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-label">发布流程 ID</div>
+          <div class="status-value">${esc(last.release_id || '-')}</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-label">上次查询时间</div>
+          <div class="status-value">${esc(latest.checked_at || '-')}</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-label">本地观测通过时间</div>
+          <div class="status-value">${esc(storeStatus.observed_passed_at || '-')}</div>
+        </div>
+      </div>
+      <div class="poll-section-title">轮询记录</div>
+      <div class="progress-list">${renderPollHistory(history)}</div>
+    </section>
+  `;
+}
+
+function renderPollHistory(history) {
+  if (!history.length) {
+    return '<div class="empty-state">暂无轮询记录</div>';
+  }
+
+  const icons = {
+    reviewing: '🔄',
+    finished: '✅',
+    failed: '❌',
+  };
+  return history.map(item => {
+    const result = item.result || {};
+    return `
+      <div class="progress-item">
+        <div class="progress-icon ${item.status === 'failed' ? 'failed' : (item.status === 'reviewing' ? 'uploading' : 'success')}">
+          ${item.status === 'reviewing' ? '<div class="spinner"></div>' : (icons[item.status] || '📌')}
+        </div>
+        <div class="progress-info">
+          <div class="progress-name">${esc(item.checked_at || '-')} · ${esc(item.message || '-')}</div>
+          <div class="progress-msg">${esc(formatVersion(result))} · releaseId: ${esc(result.release_id || '-')}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function pollState(storeStatus) {
+  if (storeStatus.running) return 'running';
+  if (storeStatus.state === 'failed') return 'failed';
+  if (storeStatus.state === 'unsupported') return 'unsupported';
+  if (storeStatus.state === 'skipped') return 'skipped';
+  if (storeStatus.state === 'stopped') return 'stopped';
+  if (storeStatus.done) return 'done';
+  return 'idle';
+}
+
+function pollStateText(storeStatus, state) {
+  const texts = {
+    running: '轮询中',
+    done: '已结束',
+    failed: '失败',
+    unsupported: '待接入',
+    skipped: '已跳过',
+    stopped: '已停止',
+    idle: '未开始',
+  };
+  return texts[state] || storeStatus.message || '-';
+}
+
+function formatVersion(result) {
+  const versionName = result.version_name || '';
+  const versionCode = result.version_code || '';
+  if (!versionName && !versionCode) return '-';
+  if (versionName && versionCode) return `${versionName} (${versionCode})`;
+  return versionName || String(versionCode);
+}
+
 // ═══════════════════ Toast ═══════════════════
 function toast(msg, type = 'info') {
   const container = document.getElementById('toasts');
@@ -998,7 +1444,7 @@ function toast(msg, type = 'info') {
 // ═══════════════════ Utils ═══════════════════
 function esc(str) {
   const div = document.createElement('div');
-  div.textContent = str || '';
+  div.textContent = str === undefined || str === null ? '' : String(str);
   return div.innerHTML;
 }
 </script>

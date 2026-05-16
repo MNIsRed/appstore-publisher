@@ -9,10 +9,19 @@ import click
 from rich.console import Console
 
 from . import __version__
-from .config import find_config, get_app_info, load_config
+from .config import find_config, get_app_info, get_store_config, load_config
 from .publisher import print_results, publish_apks
 
 console = Console()
+
+
+def _mask_secret(value: object, keep_start: int = 4, keep_end: int = 4) -> str:
+    text = str(value or "")
+    if not text:
+        return ""
+    if len(text) <= keep_start + keep_end:
+        return "***"
+    return f"{text[:keep_start]}***{text[-keep_end:]}"
 
 
 @click.group()
@@ -134,6 +143,88 @@ def channels(ctx: click.Context) -> None:
     console.print(table)
     console.print()
     console.print("[dim]Files matching *-{channel}.apk or *-{channel}-signed.apk[/dim]")
+
+
+@cli.group()
+@click.pass_context
+def diagnose(ctx: click.Context) -> None:
+    """Run store-specific diagnostics without uploading APKs."""
+
+
+@diagnose.command("vivo")
+@click.option("--package-name", default="", help="Package name to query. Defaults to app.package_name.")
+@click.pass_context
+def diagnose_vivo(ctx: click.Context, package_name: str) -> None:
+    """Diagnose vivo app.query.details access and signed request parameters."""
+    from rich.panel import Panel
+    from rich.table import Table
+
+    from .models import StoreName
+    from .stores import create_store
+    from .stores.vivo import METHOD_APP_DETAIL, VivoStore
+
+    config = ctx.obj["config"]
+    app_info = get_app_info(config)
+    store_configs = config.get("stores", {})
+    store_config = get_store_config(config, StoreName.VIVO)
+    store = create_store(StoreName.VIVO, store_configs, app_info)
+    if not isinstance(store, VivoStore):
+        console.print("[red]Error:[/red] vivo store implementation is unavailable.")
+        ctx.exit(1)
+
+    target_package = package_name or app_info.package_name
+    if not target_package:
+        console.print("[red]Error:[/red] Missing package name. Set app.package_name or pass --package-name.")
+        ctx.exit(1)
+
+    missing = store.validate_config()
+    if missing:
+        console.print("[red]Error:[/red] Missing config: " + ", ".join(missing))
+        ctx.exit(1)
+
+    preview = store.build_diagnostic_app_detail_request(target_package)
+    params = preview["params"]
+
+    table = Table(title="vivo app.query.details request preview")
+    table.add_column("Field", style="cyan")
+    table.add_column("Value", overflow="fold")
+    table.add_row("url", str(preview["url"]))
+    table.add_row("packageName", target_package)
+    table.add_row("access_key", _mask_secret(store_config.get("access_key", "")))
+    table.add_row("method", str(params.get("method", "")))
+    table.add_row("sign_method", str(params.get("sign_method", "")))
+    table.add_row("v", str(params.get("v", "")))
+    table.add_row("timestamp", str(params.get("timestamp", "")))
+    table.add_row("signed_keys", ", ".join(preview["signed_keys"]))
+    console.print(table)
+
+    try:
+        result = store._signed_request(
+            METHOD_APP_DETAIL,
+            store._build_app_detail_params(target_package),
+        )
+    except Exception as e:
+        console.print(Panel(str(e), title="Request exception", style="red"))
+        ctx.exit(1)
+
+    response_table = Table(title="vivo raw response")
+    response_table.add_column("Field", style="cyan")
+    response_table.add_column("Value", overflow="fold")
+    for key in ("code", "subCode", "msg", "subMsg"):
+        response_table.add_row(key, str(result.get(key, "")))
+    console.print(response_table)
+
+    data = result.get("data")
+    if isinstance(data, dict):
+        console.print(f"[green]OK[/green] vivo returned data keys: {', '.join(sorted(data.keys()))}")
+    else:
+        console.print("[yellow]vivo did not return app detail data.[/yellow]")
+        if str(result.get("code", "")) == "10018":
+            console.print(
+                "[yellow]Hint:[/yellow] vivo returned code=10018. "
+                "The Open API document uses code=23 for illegal signatures, so this response usually points to "
+                "access-key permission, platform/account namespace, or method authorization rather than a local HMAC mismatch."
+            )
 
 
 def main() -> None:

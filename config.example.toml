@@ -12,7 +12,12 @@ default = "Bug fixes and performance improvements"
 [stores.yingyongbao]
 enabled = true
 user_id = "your_user_id"
-private_key_path = "./keys/yingyongbao_private.pem"
+access_secret = "your_access_secret"
+app_id = "your_app_id"
+
+[stores.yingyongbao.release]
+# 32_64 = 32位或32&64位兼容包；64 = 纯64位包
+apk_bit_type = "32_64"
 
 # === Huawei AppGallery (华为应用市场) ===
 [stores.huawei]
@@ -21,12 +26,38 @@ client_id = "your_client_id"
 client_secret = "your_client_secret"
 app_id = "your_app_id"
 
+[stores.huawei.release]
+# apk = Android APK/AAB 上传流程；app = HarmonyOS .app 上传流程
+package_type = "apk"
+release_type = 1
+# 0 = 不分阶段，直接全网发布；3 = 分阶段发布
+release_phase = 0
+# 审核备注，不展示给用户；更新日志会写入语言信息 newFeatures。
+remark = ""
+language = "zh-CN"
+# 华为上传包后需要等待后台解析完成再提交审核。
+compile_initial_wait = 10
+compile_poll_interval = 10
+compile_timeout = 180
+# 审核状态轮询默认调用华为“查询应用概要信息列表”相关接口；
+# 若华为接口路径调整，可临时覆盖为官方文档中的实际路径。
+# brief_info_path = "/api/publish/v2/app-brief-info-list"
+# release_time = "2026-05-06T10:00:00+0800"
+
 # === Honor App Market (荣耀应用市场) ===
 [stores.honor]
 enabled = true
 client_id = "your_client_id"
 client_secret = "your_client_secret"
-app_id = "your_app_id"
+# 可选。留空时会通过 app.package_name 自动查询。
+app_id = ""
+
+[stores.honor.release]
+force_update = 0
+release_type = 1
+# test_account = "demo"
+# test_password = "password"
+# test_comment = "测试说明"
 
 # === vivo App Store (vivo应用商店) ===
 [stores.vivo]
@@ -34,14 +65,33 @@ enabled = true
 access_key = "your_access_key"
 access_secret = "your_access_secret"
 
+[stores.vivo.release]
+online_type = 1
+# online_type = 2 时填写定时上架时间。
+# sche_online_time = "2026-05-06 10:00:00"
+
 # === OPPO App Store (OPPO应用商店) ===
 [stores.oppo]
 enabled = true
 client_id = "your_client_id"
 client_secret = "your_client_secret"
 
+# OPPO API 传包会先查询后台已有应用资料并复用分类、截图、隐私政策等字段。
+# Web GUI 上传时填写 Version Code 即可；CLI 使用时可在这里配置。
+[stores.oppo.release]
+# version_code = "120"
+online_type = 1
+test_desc = "自动化 API 传包"
+cpu_code = 0
+# 4 = 手机；5 = 手机 + 平板；6 = 平板
+adaptive_equipment = 4
+
 # === Xiaomi App Store (小米应用商店) ===
 [stores.xiaomi]
 enabled = true
 username = "dev@example.com"
-access_password = "your_access_password"
+private_key = "your_xiaomi_api_private_key"
+public_key_path = "keys/dev.api.public.cer"
+
+[stores.xiaomi.release]
+synchro_type = 1

@@ -24,6 +24,8 @@ config.local.toml
 config.json
 *.pem
 *.key
+*.cer
+keys/
 
 # OS
 .DS_Store
